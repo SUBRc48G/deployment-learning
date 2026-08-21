@@ -31,7 +31,7 @@ pipeline {
                     usernameVariable: 'DOCKER_USERNAME',
                     passwordVariable: 'DOCKER_PASSWORD'
                 )]) {
-                    bat 'docker login -u "%DOCKER_USERNAME%" -p "%DOCKER_PASSWORD%"'
+                    bat 'echo %DOCKER_PASSWORD% | docker login -u "%DOCKER_USERNAME%" --password-stdin'
                     bat 'docker tag deployment-learning-flask-app:latest %DOCKER_IMAGE%'
                     bat 'docker push %DOCKER_IMAGE%'
                 }
