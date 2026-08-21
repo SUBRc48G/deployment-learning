@@ -6,6 +6,8 @@ pipeline {
         DB_NAME = 'edumind'
         DB_USER = 'edumind'
         DB_PASSWORD = credentials('db-password')
+
+        DOCKER_IMAGE = 'subrat033/deployment-learning:latest'
     }
 
     stages {
@@ -19,6 +21,20 @@ pipeline {
         stage('Build') {
             steps {
                 bat 'docker compose build'
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-credentials',
+                    usernameVariable: 'DOCKER_USERNAME',
+                    passwordVariable: 'DOCKER_PASSWORD'
+                )]) {
+                    bat 'docker login -u "%DOCKER_USERNAME%" -p "%DOCKER_PASSWORD%"'
+                    bat 'docker tag deployment-learning-flask-app:latest %DOCKER_IMAGE%'
+                    bat 'docker push %DOCKER_IMAGE%'
+                }
             }
         }
 
