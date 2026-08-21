@@ -29,12 +29,13 @@ pipeline {
         }
 
         stage('Verify') {
-            steps {
-            bat '''
-            timeout /t 15 /nobreak
-            docker inspect --format="{{.State.Health.Status}}" flask-compose
-        '''
-            }
-        }
+    steps {
+        bat 'powershell -Command "Start-Sleep -Seconds 15"'
+        bat 'docker inspect --format="{{.State.Health.Status}}" flask-compose'
+        bat 'curl.exe -f http://localhost:8081/health'
+    }
+}
+
+         }
     }
 }
