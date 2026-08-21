@@ -1,6 +1,13 @@
 pipeline {
     agent any
 
+    environment {
+        DB_HOST = 'postgres'
+        DB_NAME = 'edumind'
+        DB_USER = 'edumind'
+        DB_PASSWORD = credentials('db-password')
+    }
+
     stages {
 
         stage('Checkout') {
