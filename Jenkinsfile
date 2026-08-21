@@ -30,7 +30,10 @@ pipeline {
 
         stage('Verify') {
             steps {
-                bat 'docker compose ps'
+            bat '''
+            timeout /t 15 /nobreak
+            docker inspect --format="{{.State.Health.Status}}" flask-compose
+        '''
             }
         }
     }
