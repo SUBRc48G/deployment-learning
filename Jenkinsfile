@@ -2,11 +2,6 @@ pipeline {
     agent any
 
     environment {
-        DB_HOST = 'postgres'
-        DB_NAME = 'edumind'
-        DB_USER = 'edumind'
-        DB_PASSWORD = credentials('db-password')
-
         DOCKER_IMAGE = 'subrat033/deployment-learning:latest'
     }
 
@@ -18,22 +13,19 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Pull Image from Docker Hub') {
             steps {
-                bat 'docker compose build'
-            }
-        }
-
-        stage('Docker Push') {
-            steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-credentials',
-                    usernameVariable: 'DOCKER_USERNAME',
-                    passwordVariable: 'DOCKER_PASSWORD'
-                )]) {
-                    bat 'echo %DOCKER_PASSWORD% | docker login -u "%DOCKER_USERNAME%" --password-stdin'
-                    bat 'docker tag deployment-learning-flask-app:latest %DOCKER_IMAGE%'
-                    bat 'docker push %DOCKER_IMAGE%'
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-credentials',
+                        usernameVariable: 'DOCKER_USERNAME',
+                        passwordVariable: 'DOCKER_PASSWORD'
+                    )
+                ]) {
+                    bat '''
+                        echo %DOCKER_PASSWORD% | docker login -u "%DOCKER_USERNAME%" --password-stdin
+                        docker pull %DOCKER_IMAGE%
+                    '''
                 }
             }
         }
