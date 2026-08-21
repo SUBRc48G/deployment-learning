@@ -1,6 +1,6 @@
 services:
   flask-app:
-    build: .
+    image: subrat033/deployment-learning:latest
     container_name: flask-compose
     ports:
       - "8081:5000"
