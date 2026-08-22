@@ -1,10 +1,13 @@
+# Jenkinsfile
+
+```groovy
 pipeline {
     agent any
 
     environment {
         DOCKER_REPO = 'subrat033/deployment-learning'
         IMAGE_TAG = "build-${BUILD_NUMBER}"
-        }
+    }
 
     stages {
 
@@ -32,7 +35,7 @@ pipeline {
                     ).toString()
 
                     env.COMPOSE_CHANGED =
-                        changedFiles.contains('docker-compose.yml').toString()
+                        changedFiles.contains('compose.yaml').toString()
 
                     echo "Application files changed: ${env.APP_CHANGED}"
                     echo "Docker Compose changed: ${env.COMPOSE_CHANGED}"
@@ -47,7 +50,7 @@ pipeline {
                 }
             }
             steps {
-                bat 'docker build -t %DOCKER_REPO%:%IMAGE_TAG% -t %DOCKER_REPO%:latest  .'
+                bat 'docker build -t %DOCKER_REPO%:%IMAGE_TAG% -t %DOCKER_REPO%:latest .'
             }
         }
 
@@ -95,27 +98,24 @@ pipeline {
                 }
             }
         }
-      
-         # Capture Current Image
 
-stage('Capture Current Image') {
-    when {
-        expression {
-            env.APP_CHANGED == 'true' || env.COMPOSE_CHANGED == 'true'
-        }
-    }
-    steps {
-        script {
-            env.ROLLBACK_IMAGE = bat(
-                script: 'docker inspect --format="{{.Config.Image}}" flask-compose',
-                returnStdout: true
-            ).trim()
+        stage('Capture Current Image') {
+            when {
+                expression {
+                    env.APP_CHANGED == 'true' || env.COMPOSE_CHANGED == 'true'
+                }
+            }
+            steps {
+                script {
+                    env.ROLLBACK_IMAGE = bat(
+                        script: 'docker inspect --format="{{.Config.Image}}" flask-compose',
+                        returnStdout: true
+                    ).trim()
 
-            echo "Current deployed image: ${env.ROLLBACK_IMAGE}"
+                    echo "Current deployed image: ${env.ROLLBACK_IMAGE}"
+                }
+            }
         }
-    }
-}
- 
 
         stage('Deploy') {
             when {
@@ -163,3 +163,4 @@ stage('Capture Current Image') {
         }
     }
 }
+```
