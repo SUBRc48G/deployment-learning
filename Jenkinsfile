@@ -24,24 +24,13 @@ pipeline {
                     echo "Changed files:"
                     echo changedFiles
 
-                    env.APP_CHANGED = 'false'
-                    env.COMPOSE_CHANGED = 'false'
+                    env.APP_CHANGED = (
+                        changedFiles.contains('app.py') ||
+                        changedFiles.contains('requirements.txt') ||
+                        changedFiles.contains('Dockerfile')
+                    ).toString()
 
-                    changedFiles.split('\\r?\\n').each { file ->
-                        file = file.trim()
-
-                        if (file in [
-                            'app.py',
-                            'requirements.txt',
-                            'Dockerfile'
-                        ]) {
-                            env.APP_CHANGED = 'true'
-                        }
-
-                        if (file == 'docker-compose.yml') {
-                            env.COMPOSE_CHANGED = 'true'
-                        }
-                    }
+                    env.COMPOSE_CHANGED = changedFiles.contains('docker-compose.yml').toString()
 
                     echo "Application files changed: ${env.APP_CHANGED}"
                     echo "Docker Compose changed: ${env.COMPOSE_CHANGED}"
@@ -55,7 +44,6 @@ pipeline {
                     env.APP_CHANGED == 'true'
                 }
             }
-
             steps {
                 bat 'docker build -t %DOCKER_IMAGE% .'
             }
@@ -67,7 +55,6 @@ pipeline {
                     env.APP_CHANGED == 'true'
                 }
             }
-
             steps {
                 withCredentials([
                     usernamePassword(
@@ -87,10 +74,9 @@ pipeline {
         stage('Pull Image from Docker Hub') {
             when {
                 expression {
-                    env.APP_CHANGED == 'true'
+                    env.APP_CHANGED == 'true' || env.COMPOSE_CHANGED == 'true'
                 }
             }
-
             steps {
                 withCredentials([
                     usernamePassword(
@@ -109,35 +95,28 @@ pipeline {
 
         stage('Deploy') {
             when {
-                anyOf {
-                    expression {
-                        env.APP_CHANGED == 'true'
-                    }
-
-                    expression {
-                        env.COMPOSE_CHANGED == 'true'
-                    }
+                expression {
+                    env.APP_CHANGED == 'true' || env.COMPOSE_CHANGED == 'true'
                 }
             }
-
             steps {
-                bat 'docker compose up -d'
+                withCredentials([
+                    string(credentialsId: 'db-host', variable: 'DB_HOST'),
+                    string(credentialsId: 'db-name', variable: 'DB_NAME'),
+                    string(credentialsId: 'db-user', variable: 'DB_USER'),
+                    string(credentialsId: 'db-password', variable: 'DB_PASSWORD')
+                ]) {
+                    bat 'docker compose up -d'
+                }
             }
         }
 
         stage('Verify') {
             when {
-                anyOf {
-                    expression {
-                        env.APP_CHANGED == 'true'
-                    }
-
-                    expression {
-                        env.COMPOSE_CHANGED == 'true'
-                    }
+                expression {
+                    env.APP_CHANGED == 'true' || env.COMPOSE_CHANGED == 'true'
                 }
             }
-
             steps {
                 bat 'powershell -Command "Start-Sleep -Seconds 15"'
                 bat 'docker inspect --format="{{.State.Health.Status}}" flask-compose'
@@ -145,4 +124,4 @@ pipeline {
             }
         }
     }
-}
+} 
