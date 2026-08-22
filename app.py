@@ -24,6 +24,6 @@ def home():
 
 @app.route("/health")
 def health():
-    return "PASS", 200
+    return "OK", 500
 
 app.run(host="0.0.0.0", port=5000)
