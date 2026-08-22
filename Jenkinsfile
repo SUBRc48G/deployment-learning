@@ -30,7 +30,8 @@ pipeline {
                         changedFiles.contains('Dockerfile')
                     ).toString()
 
-                    env.COMPOSE_CHANGED = changedFiles.contains('docker-compose.yml').toString()
+                    env.COMPOSE_CHANGED =
+                        changedFiles.contains('docker-compose.yml').toString()
 
                     echo "Application files changed: ${env.APP_CHANGED}"
                     echo "Docker Compose changed: ${env.COMPOSE_CHANGED}"
@@ -123,5 +124,19 @@ pipeline {
                 bat 'curl.exe -f http://localhost:8081/health'
             }
         }
+
+        stage('Automated Tests') {
+            when {
+                expression {
+                    env.APP_CHANGED == 'true' || env.COMPOSE_CHANGED == 'true'
+                }
+            }
+            steps {
+                bat '''
+                    python -m pip install pytest requests
+                    python -m pytest tests/test_deployed_app.py -v
+                '''
+            }
+        }
     }
-} 
+}
