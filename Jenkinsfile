@@ -2,8 +2,9 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'subrat033/deployment-learning:latest'
-    }
+        DOCKER_REPO = 'subrat033/deployment-learning'
+        MAGE_TAG = "build-${BUILD_NUMBER}"
+        }
 
     stages {
 
@@ -46,7 +47,7 @@ pipeline {
                 }
             }
             steps {
-                bat 'docker build -t %DOCKER_IMAGE% .'
+                bat 'docker build -t %DOCKER_REPO%:%IMAGE_TAG% -t %DOCKER_REPO%:latest  .'
             }
         }
 
@@ -66,7 +67,8 @@ pipeline {
                 ]) {
                     bat '''
                         echo %DOCKER_PASSWORD% | docker login -u "%DOCKER_USERNAME%" --password-stdin
-                        docker push %DOCKER_IMAGE%
+                        docker push %DOCKER_REPO%:%IMAGE_TAG%
+                        docker push %DOCKER_REPO%:latest
                     '''
                 }
             }
@@ -88,7 +90,7 @@ pipeline {
                 ]) {
                     bat '''
                         echo %DOCKER_PASSWORD% | docker login -u "%DOCKER_USERNAME%" --password-stdin
-                        docker pull %DOCKER_IMAGE%
+                        docker pull %DOCKER_REPO%:%IMAGE_TAG%
                     '''
                 }
             }
