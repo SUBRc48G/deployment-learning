@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_REPO = 'subrat033/deployment-learning'
-        MAGE_TAG = "build-${BUILD_NUMBER}"
+        IMAGE_TAG = "build-${BUILD_NUMBER}"
         }
 
     stages {
