@@ -95,6 +95,27 @@ pipeline {
                 }
             }
         }
+      
+         # Capture Current Image
+
+stage('Capture Current Image') {
+    when {
+        expression {
+            env.APP_CHANGED == 'true' || env.COMPOSE_CHANGED == 'true'
+        }
+    }
+    steps {
+        script {
+            env.ROLLBACK_IMAGE = bat(
+                script: 'docker inspect --format="{{.Config.Image}}" flask-compose',
+                returnStdout: true
+            ).trim()
+
+            echo "Current deployed image: ${env.ROLLBACK_IMAGE}"
+        }
+    }
+}
+ 
 
         stage('Deploy') {
             when {
