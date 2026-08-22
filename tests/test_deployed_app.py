@@ -8,7 +8,7 @@ def test_health():
     response = requests.get(f"{BASE_URL}/health")
 
     assert response.status_code == 200
-    assert response.text == "FAIL"
+    assert response.text == "OK"
 
 
 def test_home():
